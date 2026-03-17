@@ -31,7 +31,22 @@ Requirements:
 See requirements.txt. Core packages are Flask, Flask-Login, Flask-SQLAlchemy, Flask-WTF, Flask-CKEditor, and Werkzeug.
 
 Run it:
-Create a virtual environment, install requirements, then run python main.py. The app starts on http://127.0.0.1:5002/.
+Create a virtual environment, install requirements, then run python main.py.
+You can also host it on hosting providers.
+Heroku                                $5                      Eco & Basic
+
+render                                  $0                      Individual
+
+Cyclic                                   $0                      Free Forever
+
+Glitch                                   $0                      Starter
+
+Vercel                                  $0                       Hobby
+
+PythonAnywhere                          $0                       Beginner 
+
+Google Cloud                            $0                       Free
+
 
 Notes:
 The secret key is hardcoded and should be moved to an environment variable for real use. The database is created automatically on startup. Gravatar is not used.
