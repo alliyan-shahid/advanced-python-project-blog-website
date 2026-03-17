@@ -1,5 +1,5 @@
 ﻿from datetime import date
-from flask import Flask, abort, render_template, redirect, url_for, flash
+from flask import Flask, abort, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
@@ -9,6 +9,16 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import smtplib
+from email.message import EmailMessage
+
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD")
+RECIPIENT_EMAIL = os.environ.get("RECIPIENT_EMAIL")
+
 
 # Import forms from forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
@@ -218,10 +228,30 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        phone = request.form.get("phone")
+        message = request.form.get("message")
+
+        email_message = EmailMessage()
+        email_message['Subject'] = f"New Contact Form Submission from {name}"
+        email_message['From'] = SENDER_EMAIL
+        email_message['To'] = RECIPIENT_EMAIL
+        email_message.set_content(f"Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage:\n{message}")
+
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.send_message(email_message)
+
+        flash("Your message has been sent successfully!")
+        return redirect(url_for('contact'))
+
     return render_template("contact.html")
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
