@@ -1,5 +1,6 @@
-﻿{% from "bootstrap5/form.html" import render_form %} {% block content %} {%
-include "header.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+{% block content %}
+{% include "header.html" %}
 
 <!-- Page Header -->
 <header
@@ -21,6 +22,7 @@ include "header.html" %}
 <main class="mb-4">
   <div class="container">
     <div class="row">
+      <!-- Adding Flash message here for users trying to register twice -->
       {% with messages = get_flashed_messages() %}
       {% if messages %}
       {% for message in messages %}
@@ -29,11 +31,12 @@ include "header.html" %}
       {% endif %}
       {% endwith %}
       <div class="col-lg-8 col-md-10 mx-auto">
-        {{render_form(form, novalidate)}}
+        <!--Rendering login form here-->
+        {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
       </div>
     </div>
   </div>
 </main>
 
-{% include "footer.html" %} {% endblock %}
 
+{% include "footer.html" %} {% endblock %}

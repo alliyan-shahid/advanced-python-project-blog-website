@@ -27,6 +27,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+
 # ---------- User Loader for Flask-Login ----------
 @login_manager.user_loader
 def load_user(user_id):
@@ -223,4 +224,4 @@ def contact():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

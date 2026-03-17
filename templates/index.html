@@ -1,6 +1,5 @@
 ﻿{% include "header.html" %}
 
-<!-- Page Header-->
 <header
   class="masthead"
   style="background-image: url('../static/assets/img/home-bg.jpg')"
@@ -9,55 +8,55 @@
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="site-heading">
-          <h1>Alliyan's Blog</h1>
-          <span class="subheading">A collection of random musings.</span>
+          <h1>TechSkills Blog</h1>
+          <span class="subheading">Code, creativity, and everything in between.</span>
         </div>
       </div>
     </div>
   </div>
 </header>
-<!-- Main Content-->
-<div class="container px-4 px-lg-5">
-  <div class="row gx-4 gx-lg-5 justify-content-center">
-    <div class="col-md-10 col-lg-8 col-xl-7">
-      <!-- Post preview-->
-      {% for post in all_posts %}
-      <div class="post-preview">
-        <a href="{{ url_for('show_post', post_id=post.id) }}">
-          <h2 class="post-title">{{ post.title }}</h2>
-          <h3 class="post-subtitle">{{ post.subtitle }}</h3>
-        </a>
-        <p class="post-meta">
-          Posted by
-          <a href="#">{{post.author.name}}</a>
-          on {{post.date}}
-          {% if admin_user %}
-          <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
-          {% endif %}
-        </p>
-      </div>
-      <!-- Divider-->
-      <hr class="my-4" />
-      {% endfor %}
 
-      <!-- New Post -->
-      {% if admin_user %}
+<div class="container px-4 px-lg-5 posts-section">
+  <div class="row gx-4 gx-lg-5 justify-content-center">
+    <div class="col-md-10 col-lg-9 col-xl-10">
+      <div class="post-grid">
+        {% for post in all_posts %}
+        <div class="post-card">
+          <a href="{{ url_for('show_post', post_id=post.id) }}">
+            <div class="post-card__media" style="background-image: url('{{ post.img_url }}')"></div>
+            <div class="post-card__body">
+              <div class="post-card__label">Latest</div>
+              <h2 class="post-title">{{ post.title }}</h2>
+              <h3 class="post-subtitle">{{ post.subtitle }}</h3>
+            </div>
+          </a>
+          <div class="post-card__meta">
+            <span>By {{ post.author.name }}</span>
+            <span>&middot;</span>
+            <span>{{ post.date }}</span>
+            {% if current_user.id == 1: %}
+            <a class="post-card__delete" href="{{url_for('delete_post', post_id=post.id) }}">Delete</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+<br>
+      {% if current_user.id == 1: %}
       <div class="d-flex justify-content-end mb-4">
         <a
-          class="btn btn-primary float-right"
+          class="btn btn-primary float-right btn-post-cta"
           href="{{url_for('add_new_post')}}"
           >Create New Post</a
         >
       </div>
       {% endif %}
 
-      <!-- Pager-->
       <div class="d-flex justify-content-end mb-4">
-        <a class="btn btn-secondary text-uppercase" href="#!">Older Posts →</a>
+        <a class="btn btn-secondary text-uppercase btn-post-secondary" href="#!">Older Posts -&gt;</a>
       </div>
     </div>
   </div>
 </div>
 
 {% include "footer.html" %}
-

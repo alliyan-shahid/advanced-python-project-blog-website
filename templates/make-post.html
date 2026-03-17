@@ -1,5 +1,6 @@
-{% from "bootstrap5/form.html" import render_form %} {% block content %} {%
-include "header.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+{% block content %}
+{% include "header.html" %}
 
 <!-- Page Header -->
 <header
@@ -34,8 +35,8 @@ include "header.html" %}
             CKEDITOR.config.versionCheck = false;
           }
         </script>
-        {{ ckeditor.config(name='body', removePlugins='notification,notificationaggregator') }} {{
-        render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        {{ ckeditor.config(name='body') }}
+        {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
       </div>
     </div>
   </div>
