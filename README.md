@@ -1,5 +1,7 @@
 Upgraded blog with users.
 
+Deployed at: https://blog-website-350379204643.asia-south1.run.app
+
 What it does:
 This is a small blog app with user accounts and comments. Anyone can read posts. People can register and log in to leave comments. The first user (id 1) is treated as the admin and can create, edit, and delete posts.
 
