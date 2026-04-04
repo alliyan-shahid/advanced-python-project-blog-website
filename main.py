@@ -6,10 +6,12 @@ from flask_login import UserMixin, login_user, LoginManager, current_user, logou
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.exc import OperationalError
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import smtplib
+import time
 from email.message import EmailMessage
 
 SMTP_SERVER = "smtp.gmail.com"
@@ -35,6 +37,21 @@ db = SQLAlchemy(app)          # ✅ Simple, correct initialization
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+def execute_with_retry(func, retries=3, delay=2):
+    """Retry database operations if connection fails"""
+    for attempt in range(retries):
+        try:
+            return func()
+        except OperationalError as e:
+            if "SSL connection has been closed" in str(e) and attempt < retries - 1:
+                print(f"Database connection lost, retrying... (attempt {attempt + 1})")
+                time.sleep(delay)
+                # Refresh database connection
+                db.session.remove()
+            else:
+                raise
 
 
 
@@ -104,7 +121,10 @@ def register():
         hash_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
 
         # Check if user already exists
-        user = db.session.execute(db.select(User).where(User.email == email)).scalar()
+        def check_existing_user():
+            return db.session.execute(db.select(User).where(User.email == email)).scalar()
+        
+        user = execute_with_retry(check_existing_user)
         if user:
             flash("You've already signed up with that email, log in instead!")
             return redirect(url_for('login'))
@@ -124,7 +144,11 @@ def login():
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
-        user = db.session.execute(db.select(User).where(User.email == email)).scalar()
+        
+        def query_user():
+            return db.session.execute(db.select(User).where(User.email == email)).scalar()
+        
+        user = execute_with_retry(query_user)
 
         if not user:
             flash("That email does not exist, please try again.")
@@ -147,7 +171,10 @@ def logout():
 
 @app.route('/')
 def get_all_posts():
-    posts = db.session.execute(db.select(BlogPost)).scalars().all()
+    def query_posts():
+        return db.session.execute(db.select(BlogPost)).scalars().all()
+    
+    posts = execute_with_retry(query_posts)
     admin_user = current_user.is_authenticated and current_user.id == 1
     return render_template("index.html", all_posts=posts, admin_user=admin_user)
 
