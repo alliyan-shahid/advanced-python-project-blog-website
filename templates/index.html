@@ -20,7 +20,13 @@
   <div class="row gx-4 gx-lg-5 justify-content-center">
     <div class="col-md-10 col-lg-9 col-xl-10">
       {% for group in category_groups %}
-      <h2 class="post-category">{{ group.name }}</h2>
+      <h2 class="post-category">
+        {% if admin_user and group.id %}
+        <a href="{{ url_for('move_category', category_id=group.id, direction='up') }}">&#8593;</a>
+        <a href="{{ url_for('move_category', category_id=group.id, direction='down') }}">&#8595;</a>
+        {% endif %}
+        {{ group.name }}
+      </h2>
       <div class="post-grid">
         {% for post in group.posts %}
         <div class="post-card">
@@ -36,6 +42,10 @@
             <span>By {{ post.author.name }}</span>
             <span>&middot;</span>
             <span>{{ post.date }}</span>
+            {% if admin_user %}
+            <a class="post-card__move" href="{{ url_for('move_post', post_id=post.id, direction='up') }}">&#8593;</a>
+            <a class="post-card__move" href="{{ url_for('move_post', post_id=post.id, direction='down') }}">&#8595;</a>
+            {% endif %}
             {% if current_user.id == 1: %}
             <a class="post-card__delete" href="{{url_for('delete_post', post_id=post.id) }}">Delete</a>
             {% endif %}
@@ -58,9 +68,6 @@
       </div>
       {% endif %}
 
-      <div class="d-flex justify-content-end mb-4">
-        <a class="btn btn-secondary text-uppercase btn-post-secondary" href="#!">Older Posts -&gt;</a>
-      </div>
     </div>
   </div>
 </div>

@@ -3,7 +3,7 @@ from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, Text, ForeignKey
+from sqlalchemy import Integer, String, Text, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 from sqlalchemy.exc import OperationalError
 from functools import wraps
@@ -73,6 +73,7 @@ class BlogPost(db.Model):
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
     category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('categories.id'))
     category: Mapped["Category"] = relationship(back_populates="posts")
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     comments: Mapped[list["Comment"]] = relationship(back_populates="post", cascade="all, delete-orphan")
 
 
@@ -80,6 +81,7 @@ class Category(db.Model):
     __tablename__ = "categories"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     posts: Mapped[list["BlogPost"]] = relationship(back_populates="category")
 
 
@@ -187,7 +189,8 @@ def get_all_posts():
     
     posts = execute_with_retry(query_posts)
     def query_categories():
-        return db.session.execute(db.select(Category).order_by(Category.name)).scalars().all()
+        stmt = db.select(Category).order_by(Category.sort_order, Category.name)
+        return db.session.execute(stmt).scalars().all()
     categories = execute_with_retry(query_categories)
 
     uncategorized_posts = [post for post in posts if post.category_id is None]
@@ -200,13 +203,15 @@ def get_all_posts():
         category_posts = posts_by_category_id.get(category.id, [])
         if category_posts:
             category_groups.append({
+                "id": category.id,
                 "name": category.name,
-                "posts": sorted(category_posts, key=lambda p: p.id, reverse=True)
+                "posts": sorted(category_posts, key=lambda p: (p.sort_order, p.id))
             })
     if uncategorized_posts:
         category_groups.append({
+            "id": None,
             "name": "Uncategorized",
-            "posts": sorted(uncategorized_posts, key=lambda p: p.id, reverse=True)
+            "posts": sorted(uncategorized_posts, key=lambda p: (p.sort_order, p.id))
         })
     admin_user = current_user.is_authenticated and current_user.id == 1
     return render_template("index.html", all_posts=posts, admin_user=admin_user, category_groups=category_groups)
@@ -254,7 +259,8 @@ def show_post(post_id):
 def add_new_post():
     form = CreatePostForm()
     def query_categories():
-        return db.session.execute(db.select(Category).order_by(Category.name)).scalars().all()
+        stmt = db.select(Category).order_by(Category.sort_order, Category.name)
+        return db.session.execute(stmt).scalars().all()
     categories = execute_with_retry(query_categories)
     form.category_existing.choices = [(0, "Select a category")] + [(cat.id, cat.name) for cat in categories]
 
@@ -267,14 +273,22 @@ def add_new_post():
                 return db.session.execute(db.select(Category).where(Category.name == new_category_name)).scalar()
             category = execute_with_retry(query_existing_category)
             if not category:
-                category = Category(name=new_category_name)
+                def next_category_order():
+                    return db.session.execute(db.select(func.max(Category.sort_order))).scalar()
+                max_order = execute_with_retry(next_category_order) or 0
+                category = Category(name=new_category_name, sort_order=max_order + 1)
                 db.session.add(category)
                 db.session.flush()
         else:
             if not selected_category_id:
                 flash("Please select a category or create a new one.")
                 return render_template("make-post.html", form=form)
-            category = db.get_or_404(Category, selected_category_id)
+            category = execute_with_retry(lambda: db.get_or_404(Category, selected_category_id))
+
+        def next_post_order():
+            stmt = db.select(func.max(BlogPost.sort_order)).where(BlogPost.category_id == category.id)
+            return db.session.execute(stmt).scalar()
+        max_post_order = execute_with_retry(next_post_order) or 0
 
         new_post = BlogPost(
             title=form.title.data,
@@ -283,7 +297,8 @@ def add_new_post():
             img_url=form.img_url.data,
             author=current_user,
             date=form.publish_date.data,
-            category=category
+            category=category,
+            sort_order=max_post_order + 1
         )
         def save_post():
             db.session.add(new_post)
@@ -306,7 +321,8 @@ def edit_post(post_id):
         new_category=""
     )
     def query_categories():
-        return db.session.execute(db.select(Category).order_by(Category.name)).scalars().all()
+        stmt = db.select(Category).order_by(Category.sort_order, Category.name)
+        return db.session.execute(stmt).scalars().all()
     categories = execute_with_retry(query_categories)
     edit_form.category_existing.choices = [(0, "Select a category")] + [(cat.id, cat.name) for cat in categories]
     edit_form.category_existing.data = post.category_id or 0
@@ -320,14 +336,24 @@ def edit_post(post_id):
                 return db.session.execute(db.select(Category).where(Category.name == new_category_name)).scalar()
             category = execute_with_retry(query_existing_category)
             if not category:
-                category = Category(name=new_category_name)
+                def next_category_order():
+                    return db.session.execute(db.select(func.max(Category.sort_order))).scalar()
+                max_order = execute_with_retry(next_category_order) or 0
+                category = Category(name=new_category_name, sort_order=max_order + 1)
                 db.session.add(category)
                 db.session.flush()
         else:
             if not selected_category_id:
                 flash("Please select a category or create a new one.")
                 return render_template("make-post.html", form=edit_form, is_edit=True)
-            category = db.get_or_404(Category, selected_category_id)
+            category = execute_with_retry(lambda: db.get_or_404(Category, selected_category_id))
+
+        if post.category_id != category.id:
+            def next_post_order():
+                stmt = db.select(func.max(BlogPost.sort_order)).where(BlogPost.category_id == category.id)
+                return db.session.execute(stmt).scalar()
+            max_post_order = execute_with_retry(next_post_order) or 0
+            post.sort_order = max_post_order + 1
 
         post.title = edit_form.title.data
         post.subtitle = edit_form.subtitle.data
@@ -349,6 +375,67 @@ def delete_post(post_id):
         db.session.commit()
     execute_with_retry(delete_post_record)
     return redirect(url_for('get_all_posts'))
+
+
+@app.route("/category-move/<int:category_id>/<direction>")
+@admin_only
+def move_category(category_id, direction):
+    def query_categories():
+        stmt = db.select(Category).order_by(Category.sort_order, Category.id)
+        return db.session.execute(stmt).scalars().all()
+    categories = execute_with_retry(query_categories)
+    current_index = next((i for i, cat in enumerate(categories) if cat.id == category_id), None)
+    if current_index is None:
+        abort(404)
+
+    if direction == "up":
+        swap_index = current_index - 1
+    elif direction == "down":
+        swap_index = current_index + 1
+    else:
+        abort(400)
+
+    if swap_index < 0 or swap_index >= len(categories):
+        return redirect(url_for("get_all_posts"))
+
+    current_category = categories[current_index]
+    swap_category = categories[swap_index]
+    current_category.sort_order, swap_category.sort_order = swap_category.sort_order, current_category.sort_order
+    execute_with_retry(lambda: db.session.commit())
+    return redirect(url_for("get_all_posts"))
+
+
+@app.route("/post-move/<int:post_id>/<direction>")
+@admin_only
+def move_post(post_id, direction):
+    post = execute_with_retry(lambda: db.get_or_404(BlogPost, post_id))
+    def query_posts():
+        stmt = (
+            db.select(BlogPost)
+            .where(BlogPost.category_id == post.category_id)
+            .order_by(BlogPost.sort_order, BlogPost.id)
+        )
+        return db.session.execute(stmt).scalars().all()
+    posts = execute_with_retry(query_posts)
+    current_index = next((i for i, p in enumerate(posts) if p.id == post.id), None)
+    if current_index is None:
+        abort(404)
+
+    if direction == "up":
+        swap_index = current_index - 1
+    elif direction == "down":
+        swap_index = current_index + 1
+    else:
+        abort(400)
+
+    if swap_index < 0 or swap_index >= len(posts):
+        return redirect(url_for("get_all_posts"))
+
+    current_post = posts[current_index]
+    swap_post = posts[swap_index]
+    current_post.sort_order, swap_post.sort_order = swap_post.sort_order, current_post.sort_order
+    execute_with_retry(lambda: db.session.commit())
+    return redirect(url_for("get_all_posts"))
 
 
 @app.route("/about")
