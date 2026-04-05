@@ -1,11 +1,10 @@
-﻿from datetime import date
 from flask import Flask, abort, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, Text, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 from sqlalchemy.exc import OperationalError
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -58,7 +57,7 @@ def execute_with_retry(func, retries=3, delay=2):
 # ---------- User Loader for Flask-Login ----------
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    return execute_with_retry(lambda: db.session.get(User, int(user_id)))
 
 
 # ---------- Database Models ----------
@@ -72,7 +71,16 @@ class BlogPost(db.Model):
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False)
     author: Mapped["User"] = relationship(back_populates="posts")
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
+    category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('categories.id'))
+    category: Mapped["Category"] = relationship(back_populates="posts")
     comments: Mapped[list["Comment"]] = relationship(back_populates="post", cascade="all, delete-orphan")
+
+
+class Category(db.Model):
+    __tablename__ = "categories"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    posts: Mapped[list["BlogPost"]] = relationship(back_populates="category")
 
 
 class User(UserMixin, db.Model):
@@ -97,7 +105,7 @@ class Comment(db.Model):
 
 # ---------- Create Tables ----------
 with app.app_context():
-    db.create_all()
+    execute_with_retry(lambda: db.create_all())
 
 
 # ---------- Admin Decorator ----------
@@ -130,8 +138,10 @@ def register():
             return redirect(url_for('login'))
 
         new_user = User(name=name, email=email, password=hash_password)
-        db.session.add(new_user)
-        db.session.commit()
+        def save_user():
+            db.session.add(new_user)
+            db.session.commit()
+        execute_with_retry(save_user)
         login_user(new_user)
         return redirect(url_for("get_all_posts"))
 
@@ -172,16 +182,51 @@ def logout():
 @app.route('/')
 def get_all_posts():
     def query_posts():
-        return db.session.execute(db.select(BlogPost)).scalars().all()
+        stmt = db.select(BlogPost).options(selectinload(BlogPost.author))
+        return db.session.execute(stmt).scalars().all()
     
     posts = execute_with_retry(query_posts)
+    def query_categories():
+        return db.session.execute(db.select(Category).order_by(Category.name)).scalars().all()
+    categories = execute_with_retry(query_categories)
+
+    uncategorized_posts = [post for post in posts if post.category_id is None]
+    posts_by_category_id = {}
+    for post in posts:
+        if post.category_id:
+            posts_by_category_id.setdefault(post.category_id, []).append(post)
+    category_groups = []
+    for category in categories:
+        category_posts = posts_by_category_id.get(category.id, [])
+        if category_posts:
+            category_groups.append({
+                "name": category.name,
+                "posts": sorted(category_posts, key=lambda p: p.id, reverse=True)
+            })
+    if uncategorized_posts:
+        category_groups.append({
+            "name": "Uncategorized",
+            "posts": sorted(uncategorized_posts, key=lambda p: p.id, reverse=True)
+        })
     admin_user = current_user.is_authenticated and current_user.id == 1
-    return render_template("index.html", all_posts=posts, admin_user=admin_user)
+    return render_template("index.html", all_posts=posts, admin_user=admin_user, category_groups=category_groups)
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
-    requested_post = db.get_or_404(BlogPost, post_id)
+    def query_post():
+        stmt = (
+            db.select(BlogPost)
+            .options(
+                selectinload(BlogPost.author),
+                selectinload(BlogPost.comments).selectinload(Comment.comment_author)
+            )
+            .where(BlogPost.id == post_id)
+        )
+        return db.session.execute(stmt).scalar_one_or_none()
+    requested_post = execute_with_retry(query_post)
+    if requested_post is None:
+        abort(404)
     admin_user = current_user.is_authenticated and current_user.id == 1
     form = CommentForm()
 
@@ -195,8 +240,10 @@ def show_post(post_id):
             comment_author=current_user,
             post=requested_post
         )
-        db.session.add(new_comment)
-        db.session.commit()
+        def save_comment():
+            db.session.add(new_comment)
+            db.session.commit()
+        execute_with_retry(save_comment)
         return redirect(url_for("show_post", post_id=post_id))
 
     return render_template("post.html", post=requested_post, admin_user=admin_user, form=form)
@@ -206,17 +253,42 @@ def show_post(post_id):
 @admin_only
 def add_new_post():
     form = CreatePostForm()
+    def query_categories():
+        return db.session.execute(db.select(Category).order_by(Category.name)).scalars().all()
+    categories = execute_with_retry(query_categories)
+    form.category_existing.choices = [(0, "Select a category")] + [(cat.id, cat.name) for cat in categories]
+
     if form.validate_on_submit():
+        new_category_name = (form.new_category.data or "").strip()
+        selected_category_id = form.category_existing.data
+
+        if new_category_name:
+            def query_existing_category():
+                return db.session.execute(db.select(Category).where(Category.name == new_category_name)).scalar()
+            category = execute_with_retry(query_existing_category)
+            if not category:
+                category = Category(name=new_category_name)
+                db.session.add(category)
+                db.session.flush()
+        else:
+            if not selected_category_id:
+                flash("Please select a category or create a new one.")
+                return render_template("make-post.html", form=form)
+            category = db.get_or_404(Category, selected_category_id)
+
         new_post = BlogPost(
             title=form.title.data,
             subtitle=form.subtitle.data,
             body=form.body.data,
             img_url=form.img_url.data,
             author=current_user,
-            date=date.today().strftime("%B %d, %Y")
+            date=form.publish_date.data,
+            category=category
         )
-        db.session.add(new_post)
-        db.session.commit()
+        def save_post():
+            db.session.add(new_post)
+            db.session.commit()
+        execute_with_retry(save_post)
         return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form)
 
@@ -224,19 +296,46 @@ def add_new_post():
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 @admin_only
 def edit_post(post_id):
-    post = db.get_or_404(BlogPost, post_id)
+    post = execute_with_retry(lambda: db.get_or_404(BlogPost, post_id))
     edit_form = CreatePostForm(
         title=post.title,
         subtitle=post.subtitle,
         img_url=post.img_url,
-        body=post.body
+        body=post.body,
+        publish_date=post.date,
+        new_category=""
     )
+    def query_categories():
+        return db.session.execute(db.select(Category).order_by(Category.name)).scalars().all()
+    categories = execute_with_retry(query_categories)
+    edit_form.category_existing.choices = [(0, "Select a category")] + [(cat.id, cat.name) for cat in categories]
+    edit_form.category_existing.data = post.category_id or 0
+
     if edit_form.validate_on_submit():
+        new_category_name = (edit_form.new_category.data or "").strip()
+        selected_category_id = edit_form.category_existing.data
+
+        if new_category_name:
+            def query_existing_category():
+                return db.session.execute(db.select(Category).where(Category.name == new_category_name)).scalar()
+            category = execute_with_retry(query_existing_category)
+            if not category:
+                category = Category(name=new_category_name)
+                db.session.add(category)
+                db.session.flush()
+        else:
+            if not selected_category_id:
+                flash("Please select a category or create a new one.")
+                return render_template("make-post.html", form=edit_form, is_edit=True)
+            category = db.get_or_404(Category, selected_category_id)
+
         post.title = edit_form.title.data
         post.subtitle = edit_form.subtitle.data
         post.img_url = edit_form.img_url.data
         post.body = edit_form.body.data
-        db.session.commit()
+        post.date = edit_form.publish_date.data
+        post.category = category
+        execute_with_retry(lambda: db.session.commit())
         return redirect(url_for("show_post", post_id=post.id))
     return render_template("make-post.html", form=edit_form, is_edit=True)
 
@@ -244,9 +343,11 @@ def edit_post(post_id):
 @app.route("/delete/<int:post_id>")
 @admin_only
 def delete_post(post_id):
-    post_to_delete = db.get_or_404(BlogPost, post_id)
-    db.session.delete(post_to_delete)
-    db.session.commit()
+    post_to_delete = execute_with_retry(lambda: db.get_or_404(BlogPost, post_id))
+    def delete_post_record():
+        db.session.delete(post_to_delete)
+        db.session.commit()
+    execute_with_retry(delete_post_record)
     return redirect(url_for('get_all_posts'))
 
 
