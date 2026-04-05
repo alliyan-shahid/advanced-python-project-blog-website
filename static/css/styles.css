@@ -10611,6 +10611,41 @@ blockquote {
   letter-spacing: 0.0625em;
   text-transform: uppercase;
 }
+@media (max-width: 991.98px) {
+  #mainNav {
+    border-bottom: 0;
+    background: transparent;
+  }
+  #mainNav .container {
+    justify-content: flex-end;
+  }
+  #mainNav .navbar-toggler {
+    margin-left: auto;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.65);
+    background: rgba(15, 23, 42, 0.35);
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    letter-spacing: 0.08em;
+  }
+  #mainNav .navbar-toggler .fa-bars {
+    margin-left: 0.35rem;
+  }
+  #mainNav .navbar-collapse {
+    margin-top: 0.6rem;
+    background: rgba(15, 23, 42, 0.88);
+    border-radius: 16px;
+    padding: 0.35rem 0.5rem;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+  }
+  #mainNav .navbar-nav > li.nav-item > a.nav-link {
+    color: #fff;
+  }
+  #mainNav .navbar-nav > li.nav-item > a.nav-link:focus,
+  #mainNav .navbar-nav > li.nav-item > a.nav-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
 @media (min-width: 992px) {
   #mainNav {
     border-bottom: 1px solid transparent;
