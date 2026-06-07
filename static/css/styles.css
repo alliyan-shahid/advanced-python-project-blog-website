@@ -93,11 +93,13 @@
 
 body {
   margin: 0;
+  padding: 0;
   font-family: var(--bs-body-font-family);
   font-size: var(--bs-body-font-size);
   font-weight: var(--bs-body-font-weight);
   line-height: var(--bs-body-line-height);
   color: var(--bs-body-color);
+  overflow-x: hidden;
   text-align: var(--bs-body-text-align);
   background-color: var(--bs-body-bg);
   -webkit-text-size-adjust: 100%;
@@ -10589,67 +10591,163 @@ blockquote {
 #mainNav {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1030;
-  border-bottom: 1px solid #dee2e6;
-  background-color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background-color: #1a1a1a;
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  width: auto;
+  max-width: 90%;
+  padding: 0.5rem 1.5rem;
+  margin: 0 auto 0;
+  box-sizing: border-box;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 #mainNav .navbar-brand {
   font-weight: 800;
+  color: #fff !important;
+  font-size: 1.5rem;
+  padding: 0;
+  margin: 0;
 }
 #mainNav .navbar-toggler {
   font-size: 0.75rem;
   font-weight: 800;
-  padding: 0.75rem;
+  padding: 0.5rem;
   text-transform: uppercase;
+  border-color: #fff;
+  color: #fff;
+  margin: 0;
 }
 #mainNav .navbar-nav > li.nav-item > a.nav-link {
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.0625em;
   text-transform: uppercase;
+  color: #fff !important;
 }
-@media (max-width: 991.98px) {
+@media (max-width: 768px) {
   #mainNav {
-    border-bottom: 0;
-    background: transparent;
+    position: fixed !important;
+    top: 15px !important;
+    right: 15px !important;
+    left: auto !important;
+    transform: none !important;
+    width: fit-content !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 9999 !important;
   }
+  
   #mainNav .container {
-    justify-content: flex-end;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 1rem !important;
+    width: auto !important;
   }
+  
+  #mainNav .navbar-brand {
+    display: none !important;
+  }
+  
   #mainNav .navbar-toggler {
-    margin-left: auto;
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.65);
-    background: rgba(15, 23, 42, 0.35);
-    border-radius: 999px;
-    padding: 0.45rem 0.9rem;
-    letter-spacing: 0.08em;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    padding: 0.6rem 1.2rem !important;
+    margin: 0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    border-radius: 50px !important;
   }
+  
+  #mainNav .navbar-toggler:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  }
+  
+  #mainNav .navbar-toggler:focus {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: none !important;
+  }
+  
   #mainNav .navbar-toggler .fa-bars {
-    margin-left: 0.35rem;
+    margin-left: 0 !important;
+    font-size: 1rem !important;
+    color: #fff !important;
   }
+  
   #mainNav .navbar-collapse {
-    margin-top: 0.6rem;
-    background: rgba(15, 23, 42, 0.88);
-    border-radius: 16px;
-    padding: 0.35rem 0.5rem;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+    display: none !important;
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    width: auto !important;
+    margin-top: 0.8rem !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 16px !important;
+    padding: 0.8rem 0 !important;
+    box-shadow: none !important;
   }
+  
+  #mainNav .navbar-collapse.show {
+    display: block !important;
+  }
+  
+  #mainNav .navbar-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+  
+  #mainNav .navbar-nav > li.nav-item {
+    margin: 0 !important;
+  }
+  
   #mainNav .navbar-nav > li.nav-item > a.nav-link {
-    color: #fff;
+    padding: 0.6rem 1.2rem !important;
+    color: #fff !important;
+    background-color: transparent !important;
+    background: transparent !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
   }
-  #mainNav .navbar-nav > li.nav-item > a.nav-link:focus,
-  #mainNav .navbar-nav > li.nav-item > a.nav-link:hover {
-    color: rgba(255, 255, 255, 0.8);
+  
+  #mainNav .navbar-nav > li.nav-item > a.nav-link:hover,
+  #mainNav .navbar-nav > li.nav-item > a.nav-link:focus {
+    color: rgba(255, 255, 255, 0.9) !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
   }
 }
 @media (min-width: 992px) {
   #mainNav {
-    border-bottom: 1px solid transparent;
-    background: transparent;
+    border-bottom: none;
+    background: #1a1a1a;
   }
   #mainNav .navbar-brand {
     color: #fff;
@@ -10668,7 +10766,7 @@ blockquote {
   #mainNav {
     transition: background-color 0.2s;
     /* Force Hardware Acceleration in WebKit */
-    transform: translate3d(0, 0, 0);
+    transform: translateX(-50%);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
@@ -10677,20 +10775,20 @@ blockquote {
     position: fixed;
     top: -83px;
     transition: transform 0.2s;
-    border-bottom: 1px solid white;
-    background-color: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background-color: #1a1a1a;
   }
   #mainNav.is-fixed .navbar-brand {
-    color: #212529;
+    color: #fff;
   }
   #mainNav.is-fixed .navbar-brand:focus, #mainNav.is-fixed .navbar-brand:hover {
-    color: #0085A1;
+    color: rgba(255, 255, 255, 0.8);
   }
   #mainNav.is-fixed .navbar-nav > li.nav-item > a {
-    color: #212529;
+    color: #fff;
   }
   #mainNav.is-fixed .navbar-nav > li.nav-item > a:focus, #mainNav.is-fixed .navbar-nav > li.nav-item > a:hover {
-    color: #0085A1;
+    color: rgba(255, 255, 255, 0.8);
   }
   #mainNav.is-visible {
     /* if the user changes the scrolling direction, we show the header */
@@ -10706,12 +10804,72 @@ footer {
 header.masthead {
   position: relative;
   margin-bottom: 3rem;
-  padding-top: calc(8rem + 57px);
-  padding-bottom: 8rem;
+  margin-top: 0;
   background: no-repeat center center;
   background-color: #6c757d;
   background-size: cover;
   background-attachment: scroll;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+header.masthead picture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+header.masthead picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+header.masthead .container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Mobile responsive - 85vh height */
+@media (max-width: 767px) {
+  header.masthead {
+    height: 85vh;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  header.masthead .container {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Tablet responsive - 70vh height */
+@media (min-width: 768px) and (max-width: 991px) {
+  header.masthead {
+    height: 70vh;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
+
+/* Desktop responsive - 95vh height */
+@media (min-width: 992px) {
+  header.masthead {
+    height: 95vh;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
 }
 header.masthead:before {
   content: "";
@@ -10721,7 +10879,8 @@ header.masthead:before {
   right: 0;
   bottom: 0;
   background-color: #212529;
-  opacity: 0.5;
+  opacity: 0;
+  display: none;
 }
 header.masthead .page-heading,
 header.masthead .post-heading,
@@ -10735,19 +10894,40 @@ header.masthead .site-heading {
 header.masthead .page-heading h1, header.masthead .page-heading .h1,
 header.masthead .site-heading h1,
 header.masthead .site-heading .h1 {
-  font-size: 3rem;
+  font-size: 2rem;
 }
+
 header.masthead .page-heading .subheading,
 header.masthead .site-heading .subheading {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 300;
   line-height: 1.1;
   display: block;
   margin-top: 0.625rem;
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
 header.masthead .post-heading h1, header.masthead .post-heading .h1 {
-  font-size: 2.25rem;
+  font-size: 1.5rem;
+}
+
+/* Tablet responsive - font size adjustments */
+@media (min-width: 768px) and (max-width: 991px) {
+  header.masthead .page-heading h1, header.masthead .page-heading .h1,
+  header.masthead .site-heading h1,
+  header.masthead .site-heading .h1 {
+    font-size: 3.5rem;
+  }
+  header.masthead .page-heading .subheading,
+  header.masthead .site-heading .subheading {
+    font-size: 1.25rem;
+  }
+  header.masthead .post-heading h1, header.masthead .post-heading .h1 {
+    font-size: 2.5rem;
+  }
+  header.masthead .post-heading .subheading {
+    font-size: 1.4rem;
+  }
 }
 header.masthead .post-heading .meta,
 header.masthead .post-heading .subheading {
@@ -10770,10 +10950,6 @@ header.masthead .post-heading .meta a {
   color: #fff;
 }
 @media (min-width: 992px) {
-  header.masthead {
-    padding-top: 12.5rem;
-    padding-bottom: 12.5rem;
-  }
   header.masthead .page-heading h1, header.masthead .page-heading .h1,
   header.masthead .site-heading h1,
   header.masthead .site-heading .h1 {
@@ -10994,6 +11170,31 @@ header.masthead .post-heading .meta a {
 }
 .commentText p {
   margin:0;
+}
+
+#mainNav .navbar-nav {
+  padding: 0;
+  margin: 0;
+  gap: 0.5rem;
+}
+
+#mainNav .navbar-nav .nav-item {
+  padding: 0;
+  margin: 0;
+}
+
+#mainNav .navbar-nav .nav-link {
+  padding: 0.5rem 0.75rem !important;
+  margin: 0;
+}
+
+/* Remove top spacing on pages */
+.page-heading,
+.post-heading,
+.site-heading,
+.container {
+  margin-top: 0 !important;
+  padding-top: 0;
 }
 
 .sub-text {
