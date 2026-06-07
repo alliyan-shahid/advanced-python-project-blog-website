@@ -32,7 +32,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize extensions
 ckeditor = CKEditor(app)
 Bootstrap5(app)
-db = SQLAlchemy(app)          # ✅ Simple, correct initialization
+db = SQLAlchemy(app)          #  Simple, correct initialization
 
 login_manager = LoginManager()
 login_manager.init_app(app)

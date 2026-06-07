@@ -1,0 +1,48 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users', '.']
+
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'blog-with-users'
+      - '--image'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users'
+      - '--region'
+      - 'asia-south1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '2'
+      - '--set-env-vars=FLASK_KEY=${_FLASK_KEY}'
+      - '--set-env-vars=DB_URI=${_DB_URI}'
+      - '--set-env-vars=SENDER_EMAIL=${_SENDER_EMAIL}'
+      - '--set-env-vars=SENDER_PASSWORD=${_SENDER_PASSWORD}'
+      - '--set-env-vars=RECIPIENT_EMAIL=${_RECIPIENT_EMAIL}'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _FLASK_KEY: '8BYkEfBA6O6donzWlSihBXOx7c0sKR6b'
+  _DB_URI: 'postgresql://neondb_owner:npg_el79zPcUZSCs@ep-empty-sky-a104qhds-pooler.ap-southeast-1.aws.neon.tech/post?sslmode=require&channel_binding=require'
+  _SENDER_EMAIL: 'alliyantesting@gmail.com'
+  _SENDER_PASSWORD: 'iobtgvkrtucupmtm'
+  _RECIPIENT_EMAIL: 'alliyan002@gmail.com'
