@@ -13,6 +13,14 @@ import smtplib
 import time
 from email.message import EmailMessage
 
+# Load environment variables from local .env when present
+# Existing process env vars still take precedence
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=False)
+except ImportError:
+    pass
+
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 

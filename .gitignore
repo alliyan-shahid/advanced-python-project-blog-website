@@ -137,12 +137,34 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
+.env.*.local
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Sensitive files (never commit real secrets!)
+*.pem
+*.key
+*.crt
+*.pass
+
+# Database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+posts.db
+
+# OS and IDE
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
 
 # Spyder project settings
 .spyderproject
