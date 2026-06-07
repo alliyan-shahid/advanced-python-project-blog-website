@@ -1,11 +1,11 @@
 steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users', '.']
+    args: ['build', '-t', 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users', '.']
 
   # Push the image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users']
+    args: ['push', 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users']
 
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,9 +15,9 @@ steps:
       - 'deploy'
       - 'blog-with-users'
       - '--image'
-      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users'
+      - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/blog-with-users'
       - '--region'
-      - 'asia-south1'
+      - 'asia-southeast1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'

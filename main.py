@@ -29,6 +29,13 @@ app.config['SECRET_KEY'] = os.environ.get('FLASK_KEY', '8BYkEfBA6O6donzWlSihBXOx
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URI', 'sqlite:///posts.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Log database URI for debugging (mask password)
+db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+if 'postgresql' in db_uri:
+    print(f"✓ Using PostgreSQL database")
+else:
+    print(f"⚠ WARNING: Using SQLite database (fallback). Check DB_URI environment variable!")
+
 # Initialize extensions
 ckeditor = CKEditor(app)
 Bootstrap5(app)
