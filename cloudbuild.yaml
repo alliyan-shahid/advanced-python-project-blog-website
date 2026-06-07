@@ -31,18 +31,11 @@ steps:
       - '0'
       - '--max-instances'
       - '2'
-      - '--set-env-vars=FLASK_KEY=${_FLASK_KEY}'
-      - '--set-env-vars=DB_URI=${_DB_URI}'
-      - '--set-env-vars=SENDER_EMAIL=${_SENDER_EMAIL}'
-      - '--set-env-vars=SENDER_PASSWORD=${_SENDER_PASSWORD}'
-      - '--set-env-vars=RECIPIENT_EMAIL=${_RECIPIENT_EMAIL}'
+      - '--set-env-vars=FLASK_KEY=8BYkEfBA6O6donzWlSihBXOx7c0sKR6b'
+      - '--set-env-vars=DB_URI=postgresql://neondb_owner:npg_el79zPcUZSCs@ep-empty-sky-a104qhds-pooler.ap-southeast-1.aws.neon.tech/post?sslmode=require&channel_binding=require'
+      - '--set-env-vars=SENDER_EMAIL=alliyantesting@gmail.com'
+      - '--set-env-vars=SENDER_PASSWORD=iobtgvkrtucupmtm'
+      - '--set-env-vars=RECIPIENT_EMAIL=alliyan002@gmail.com'
 
 options:
   logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _FLASK_KEY: '8BYkEfBA6O6donzWlSihBXOx7c0sKR6b'
-  _DB_URI: 'postgresql://neondb_owner:npg_el79zPcUZSCs@ep-empty-sky-a104qhds-pooler.ap-southeast-1.aws.neon.tech/post?sslmode=require&channel_binding=require'
-  _SENDER_EMAIL: 'alliyantesting@gmail.com'
-  _SENDER_PASSWORD: 'iobtgvkrtucupmtm'
-  _RECIPIENT_EMAIL: 'alliyan002@gmail.com'

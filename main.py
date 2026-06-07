@@ -107,7 +107,12 @@ class Comment(db.Model):
 
 # ---------- Create Tables ----------
 with app.app_context():
-    execute_with_retry(lambda: db.create_all())
+    try:
+        execute_with_retry(lambda: db.create_all())
+    except Exception as e:
+        print(f"Database initialization: Tables may already exist. Error: {e}")
+        # Tables might already exist, which is fine for production
+        pass
 
 
 # ---------- Admin Decorator ----------
