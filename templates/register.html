@@ -1,31 +1,116 @@
 {% from "bootstrap5/form.html" import render_form %} {% block content %} {%
 include "header.html" %}
 
-<!-- Page Header -->
-<header class="masthead" id="registerMasthead">
-  <picture>
-    <source media="(max-width: 767px)" srcset="{{ url_for('static', filename='assets/img/m-home-bg.webp') }}">
-    <source media="(min-width: 768px)" srcset="{{ url_for('static', filename='assets/img/register-bg.jpg') }}">
-    <img src="{{ url_for('static', filename='assets/img/register-bg.jpg') }}" alt="Register page hero background">
-  </picture>
-  <div class="container position-relative px-4 px-lg-5">
-    <div class="row gx-4 gx-lg-5 justify-content-center">
-      <div class="col-md-10 col-lg-8 col-xl-7">
-        <div class="page-heading">
-          <h1>Register</h1>
-          <span class="subheading">Start Contributing to the Blog!</span>
+
+<main class="auth-main register-page">
+  <div class="auth-container">
+    <div class="row align-items-center min-vh-100">
+      <!-- Left Section - Branding -->
+      <div class="col-lg-6 d-none d-lg-flex auth-left">
+        <div class="auth-left-content">
+          <div class="auth-logo-large">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <h1 class="auth-title">Join Our Community</h1>
+          <p class="auth-subtitle">Create an account to start sharing your ideas</p>
+          <div class="auth-features">
+            <div class="feature-item">
+              <i class="fas fa-pen-fancy"></i>
+              <span>Share Your Stories</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-users"></i>
+              <span>Connect & Engage</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-crown"></i>
+              <span>Exclusive Benefits</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</header>
 
-<main class="mb-4">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-8 col-md-10 mx-auto">
-      <!--Rendering the registration form here-->
-      {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+      <!-- Right Section - Form -->
+      <div class="col-lg-6 col-md-10 col-12 mx-auto">
+        <div class="auth-card">
+          <!-- Form Header -->
+          <div class="form-header">
+            <h2 class="form-title">Create Account</h2>
+            <p class="form-subtitle">Join our community today</p>
+          </div>
+
+          <!-- Registration Form -->
+          <form method="POST" novalidate class="auth-form">
+            {{ form.hidden_tag() }}
+            
+            <!-- Name Field -->
+            <div class="form-group-custom">
+              <label for="name" class="form-label-custom">
+                <i class="fas fa-user"></i> Full Name
+              </label>
+              <div class="input-wrapper">
+                {{ form.name(class="form-control-custom", placeholder="Enter your full name", autocomplete="name") }}
+              </div>
+              {% if form.name.errors %}
+              <div class="form-error">
+                <i class="fas fa-exclamation-circle"></i>
+                {% for error in form.name.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group-custom">
+              <label for="email" class="form-label-custom">
+                <i class="fas fa-envelope"></i> Email Address
+              </label>
+              <div class="input-wrapper">
+                {{ form.email(class="form-control-custom", placeholder="Enter your email", autocomplete="email") }}
+              </div>
+              {% if form.email.errors %}
+              <div class="form-error">
+                <i class="fas fa-exclamation-circle"></i>
+                {% for error in form.email.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group-custom">
+              <label for="password" class="form-label-custom">
+                <i class="fas fa-lock"></i> Password
+              </label>
+              <div class="input-wrapper password-wrapper">
+                {{ form.password(class="form-control-custom", placeholder="Create a strong password", autocomplete="new-password") }}
+                <button type="button" class="password-toggle">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+              <div class="password-strength">
+                <div class="strength-meter">
+                  <div class="strength-meter-fill"></div>
+                </div>
+                <small class="strength-text">Password strength: <span>--</span></small>
+              </div>
+              {% if form.password.errors %}
+              <div class="form-error">
+                <i class="fas fa-exclamation-circle"></i>
+                {% for error in form.password.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            
+
+            <!-- Submit Button -->
+            {{ form.submit(class="btn btn-primary-custom w-100", value="Create Account") }}
+          </form>
+
+          <!-- Sign In Link -->
+          <div class="form-footer">
+            <p>Already have an account? <a href="{{ url_for('login') }}" class="auth-link">Sign in here</a></p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

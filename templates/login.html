@@ -2,43 +2,120 @@
 {% block content %}
 {% include "header.html" %}
 
-<!-- Page Header -->
-<header class="masthead" id="loginMasthead">
-  <picture>
-    <source media="(max-width: 767px)" srcset="{{ url_for('static', filename='assets/img/m-home-bg.webp') }}">
-    <source media="(min-width: 768px)" srcset="{{ url_for('static', filename='assets/img/login-bg.jpg') }}">
-    <img src="{{ url_for('static', filename='assets/img/login-bg.jpg') }}" alt="Login page hero background">
-  </picture>
-  <div class="container position-relative px-4 px-lg-5">
-    <div class="row gx-4 gx-lg-5 justify-content-center">
-      <div class="col-md-10 col-lg-8 col-xl-7">
-        <div class="page-heading">
-          <h1>Log In</h1>
-          <span class="subheading">Welcome Back!</span>
+
+<main class="auth-main login-page">
+  <div class="auth-container">
+    <div class="row align-items-center min-vh-100">
+      <!-- Left Section - Branding -->
+      <div class="col-lg-6 d-none d-lg-flex auth-left">
+        <div class="auth-left-content">
+          <div class="auth-logo-large">
+            <i class="fas fa-sign-in-alt"></i>
+          </div>
+          <h1 class="auth-title">Welcome Back</h1>
+          <p class="auth-subtitle">Sign in to your account to continue</p>
+          <div class="auth-features">
+            <div class="feature-item">
+              <i class="fas fa-bolt"></i>
+              <span>Lightning Fast</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Secure Access</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-star"></i>
+              <span>Premium Content</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Section - Form -->
+      <div class="col-lg-6 col-md-10 col-12 mx-auto">
+        <div class="auth-card">
+          <!-- Flash Messages -->
+          {% with messages = get_flashed_messages() %}
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          <!-- Form Header -->
+          <div class="form-header">
+            <h2 class="form-title">Sign In</h2>
+            <p class="form-subtitle">Access your account</p>
+          </div>
+
+          <!-- Login Form -->
+          <form method="POST" novalidate class="auth-form">
+            {{ form.hidden_tag() }}
+            
+            <!-- Email Field -->
+            <div class="form-group-custom">
+              <label for="email" class="form-label-custom">
+                <i class="fas fa-envelope"></i> Email Address
+              </label>
+              <div class="input-wrapper">
+                {{ form.email(class="form-control-custom", placeholder="Enter your email", autocomplete="email") }}
+              </div>
+              {% if form.email.errors %}
+              <div class="form-error">
+                <i class="fas fa-exclamation-circle"></i>
+                {% for error in form.email.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group-custom">
+              <label for="password" class="form-label-custom">
+                <i class="fas fa-lock"></i> Password
+              </label>
+              <div class="input-wrapper password-wrapper">
+                {{ form.password(class="form-control-custom", placeholder="Enter your password", autocomplete="current-password") }}
+                <button type="button" class="password-toggle">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+              {% if form.password.errors %}
+              <div class="form-error">
+                <i class="fas fa-exclamation-circle"></i>
+                {% for error in form.password.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Remember Me Checkbox -->
+            <div class="form-check-custom">
+              <input type="checkbox" id="rememberMe" name="remember" class="form-check-input-custom">
+              <label for="rememberMe" class="form-check-label-custom">
+                Remember me on this device
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            {{ form.submit(class="btn btn-primary-custom w-100") }}
+
+            <!-- Forgot Password Link -->
+            <div class="text-center mt-3">
+              <a href="#" class="forgot-password-link">Forgot your password?</a>
+            </div>
+          </form>
+
+          <!-- Sign Up Link -->
+          <div class="form-footer">
+            <p>Don't have an account? <a href="{{ url_for('register') }}" class="auth-link">Sign up now</a></p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</header>
-
-<main class="mb-4">
-  <div class="container">
-    <div class="row">
-      <!-- Adding Flash message here for users trying to register twice -->
-      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-      {% for message in messages %}
-      <p class="flash">{{ message }}</p>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-      <div class="col-lg-8 col-md-10 mx-auto">
-        <!--Rendering login form here-->
-        {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
-      </div>
-    </div>
-  </div>
 </main>
-
 
 {% include "footer.html" %} {% endblock %}
